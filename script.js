@@ -121,21 +121,76 @@ function exibirTraducao(translation) {
     document.getElementById("traducao").innerText = "Tradução: " + translation;
 }
 
-// Função para carregar dados do arquivo CSV e armazená-los no IndexedDB ao carregar a página
-window.onload = function () {
-    loadCSVDataAndStoreInIndexedDB();
-};
+// Função para verificar se há conexão com a Internet
+function checkOnlineStatus() {
+    return navigator.onLine;
+}
 
-// Função para carregar dados do arquivo CSV e armazená-los no IndexedDB
-async function loadCSVDataAndStoreInIndexedDB() {
-    try {
-        const response = await fetch("palavras.csv");
-        const text = await response.text();
-        const rows = text.split("\n").map(row => row.split(","));
+// Função para verificar e atualizar os dados do IndexedDB quando a conexão estiver disponível
+async function checkAndSyncData() {
+    if (checkOnlineStatus()) {
+        try {
+            const response = await fetch("palavras.csv");
+            const text = await response.text();
+            const rows = text.split("\n").map(row => row.split(","));
 
-        const db = await initializeIndexedDB();
-        await addDataToIndexedDB(db, rows);
-    } catch (error) {
-        console.error("Erro ao carregar dados do arquivo CSV e armazenar no IndexedDB:", error);
+            const db = await initializeIndexedDB();
+            const transaction = db.transaction(["palavras"], "readwrite");
+            const objectStore = transaction.objectStore("palavras");
+
+            // Limpa o IndexedDB antes de adicionar os novos dados
+            await clearObjectStore(objectStore);
+
+            // Adiciona os novos dados ao IndexedDB
+            await addDataToIndexedDB(db, rows);
+
+            console.log("Dados sincronizados com sucesso.");
+        } catch (error) {
+            console.error("Erro ao verificar e sincronizar os dados:", error);
+        }
+    } else {
+        console.log("O dispositivo está offline. Não foi possível verificar e sincronizar os dados.");
     }
 }
+
+// Função para limpar o object store do IndexedDB
+function clearObjectStore(objectStore) {
+    return new Promise((resolve, reject) => {
+        const request = objectStore.clear();
+
+        request.onerror = function (event) {
+            console.error("Erro ao limpar o object store:", event.target.error);
+            reject(event.target.error);
+        };
+
+        request.onsuccess = function (event) {
+            console.log("Object store limpo com sucesso.");
+            resolve();
+        };
+    });
+}
+
+// Verifica e sincroniza os dados do IndexedDB quando o usuário ficar online novamente
+window.addEventListener('online', checkAndSyncData);
+
+// Inicia o processo de verificação e sincronização quando o script é carregado
+checkAndSyncData();
+
+// Função para carregar dados do arquivo CSV e armazená-los no IndexedDB ao carregar a página
+/*window.onload = function() {
+  loadCSVDataAndStoreInIndexedDB();
+};
+ 
+// Função para carregar dados do arquivo CSV e armazená-los no IndexedDB
+async function loadCSVDataAndStoreInIndexedDB() {
+  try {
+    const response = await fetch("palavras.csv");
+    const text = await response.text();
+    const rows = text.split("\n").map(row => row.split(","));
+ 
+    const db = await initializeIndexedDB();
+    await addDataToIndexedDB(db, rows);
+  } catch (error) {
+    console.error("Erro ao carregar dados do arquivo CSV e armazenar no IndexedDB:", error);
+  }
+}*/
