@@ -1,3 +1,15 @@
+// Registra o Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+                console.log('ServiceWorker registrado com sucesso: ', registration);
+            }).catch((registrationError) => {
+                console.log('ServiceWorker falhou ao registrar: ', registrationError);
+            });
+    });
+}
+
 // Função para inicializar o IndexedDB
 function initializeIndexedDB() {
     return new Promise((resolve, reject) => {
@@ -175,22 +187,3 @@ window.addEventListener('online', checkAndSyncData);
 
 // Inicia o processo de verificação e sincronização quando o script é carregado
 checkAndSyncData();
-
-// Função para carregar dados do arquivo CSV e armazená-los no IndexedDB ao carregar a página
-/*window.onload = function() {
-  loadCSVDataAndStoreInIndexedDB();
-};
- 
-// Função para carregar dados do arquivo CSV e armazená-los no IndexedDB
-async function loadCSVDataAndStoreInIndexedDB() {
-  try {
-    const response = await fetch("palavras.csv");
-    const text = await response.text();
-    const rows = text.split("\n").map(row => row.split(","));
- 
-    const db = await initializeIndexedDB();
-    await addDataToIndexedDB(db, rows);
-  } catch (error) {
-    console.error("Erro ao carregar dados do arquivo CSV e armazenar no IndexedDB:", error);
-  }
-}*/
