@@ -11,6 +11,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
+                console.log('Abrindo cache');
                 return cache.addAll(urlsToCache);
             })
     );
@@ -21,9 +22,9 @@ self.addEventListener('fetch', (event) => {
         caches.match(event.request)
             .then((response) => {
                 if (response) {
-                    return response;  // Return the cached response if found
+                    return response;  // Retorna a resposta cacheada, se encontrada
                 }
-                return fetch(event.request);  // Otherwise, fetch from network
+                return fetch(event.request);  // Caso contrário, busca na rede
             })
     );
 });
@@ -34,7 +35,7 @@ self.addEventListener('activate', (event) => {
         caches.keys().then((keyList) => {
             return Promise.all(keyList.map((key) => {
                 if (!cacheWhitelist.includes(key)) {
-                    return caches.delete(key);
+                    return caches.delete(key);  // Deleta caches antigos
                 }
             }));
         })
