@@ -5,16 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tradutor de Palavras</title>
+    <!-- O link para o arquivo de estilos CSS externo -->
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+    <!-- Um contêiner que centraliza todo o conteúdo da página -->
     <div class="container">
         <h1>Tradutor de Palavras</h1>
+        <!-- Campo de entrada de texto onde o usuário digita a palavra a ser traduzida -->
         <input type="text" id="palavraInput" placeholder="Digite uma palavra em inglês">
+        <!-- Botão que aciona a função de tradução ao ser clicado -->
         <button onclick="traduzir()">Traduzir</button>
+        <!-- Um div vazio que será preenchido com a tradução da palavra -->
         <div id="traducao"></div>
     </div>
+    <!-- Importa o arquivo JavaScript onde as funcionalidades da página são programadas -->
     <script src="script.js"></script>
 </body>
 
