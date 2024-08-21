@@ -1,43 +1,49 @@
+/* Define a fonte padrão e o fundo da página */
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #f5f5f5;
-    margin: 0;
-    padding: 0;
+    background-color: #f5f5f5; /* Cor de fundo */
+    margin: 0; /* Remove as margens padrão */
+    padding: 0; /* Remove os preenchimentos padrão */
 }
 
+/* Estilo do contêiner principal que centraliza o conteúdo */
 .container {
-    max-width: 400px;
-    margin: 50px auto;
-    text-align: center;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px; /* Largura máxima do contêiner */
+    margin: 50px auto; /* Centraliza o contêiner na página */
+    text-align: center; /* Centraliza o texto */
+    padding: 20px; /* Adiciona preenchimento interno */
+    background-color: #fff; /* Cor de fundo do contêiner */
+    border-radius: 10px; /* Arredonda os cantos do contêiner */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Adiciona uma leve sombra ao contêiner */
 }
 
+/* Estilo do campo de entrada de texto */
 input[type="text"] {
-    width: calc(100% - 20px);
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    width: calc(100% - 20px); /* Largura completa menos o preenchimento */
+    padding: 10px; /* Preenchimento interno */
+    margin-bottom: 20px; /* Margem abaixo do campo de texto */
+    border: 1px solid #ccc; /* Borda cinza clara */
+    border-radius: 5px; /* Arredonda os cantos do campo de texto */
 }
 
+/* Estilo do botão */
 button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+    padding: 10px 20px; /* Preenchimento interno */
+    background-color: #007bff; /* Cor de fundo azul */
+    color: white; /* Cor do texto */
+    border: none; /* Remove a borda */
+    border-radius: 5px; /* Arredonda os cantos do botão */
+    cursor: pointer; /* Muda o cursor para indicar que é clicável */
+    transition: background-color 0.3s; /* Animação suave na mudança de cor do fundo */
 }
 
+/* Estilo do botão ao passar o mouse */
 button:hover {
-    background-color: #0056b3;
+    background-color: #0056b3; /* Escurece a cor do fundo ao passar o mouse */
 }
 
+/* Estilo do campo de tradução */
 #traducao {
-    margin-top: 20px;
-    font-style: italic;
+    margin-top: 20px; /* Margem acima do campo */
+    font-style: italic; /* Texto em itálico */
 }
