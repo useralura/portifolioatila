@@ -1,7 +1,7 @@
 // Registra o Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('/tradutor/service-worker.js', { scope: '/tradutor/' })
             .then((registration) => {
                 console.log('ServiceWorker registrado com sucesso: ', registration);
             }).catch((registrationError) => {
@@ -146,7 +146,7 @@ function checkOnlineStatus() {
 async function checkAndSyncData() {
     if (checkOnlineStatus()) {
         try {
-            const response = await fetch("palavras.csv");
+            const response = await fetch("/tradutor/palavras.csv");
             const text = await response.text();
             const rows = text.split("\n").map(row => row.split(","));
 
