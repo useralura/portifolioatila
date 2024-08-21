@@ -1,10 +1,10 @@
 const CACHE_NAME = 'tradutor-cache-v1';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/script.js',
-    '/palavras.csv'
+    '/tradutor/',
+    '/tradutor/index.html',
+    '/tradutor/styles.css',
+    '/tradutor/script.js',
+    '/tradutor/palavras.csv'
 ];
 
 self.addEventListener('install', (event) => {
