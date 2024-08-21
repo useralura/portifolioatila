@@ -1,49 +1,145 @@
-/* Define a fonte padrão e o fundo da página */
-body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #f5f5f5; /* Cor de fundo */
-    margin: 0; /* Remove as margens padrão */
-    padding: 0; /* Remove os preenchimentos padrão */
+// Verifica se o navegador suporta Service Workers
+if ('serviceWorker' in navigator) {
+    // Aguarda o carregamento completo da página
+    window.addEventListener('load', () => {
+        // Registra o Service Worker, que vai permitir o site funcionar offline
+        navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+                console.log('ServiceWorker registrado com sucesso: ', registration);
+            }).catch((registrationError) => {
+                console.error('ServiceWorker falhou ao registrar: ', registrationError);
+            });
+    });
 }
 
-/* Estilo do contêiner principal que centraliza o conteúdo */
-.container {
-    max-width: 400px; /* Largura máxima do contêiner */
-    margin: 50px auto; /* Centraliza o contêiner na página */
-    text-align: center; /* Centraliza o texto */
-    padding: 20px; /* Adiciona preenchimento interno */
-    background-color: #fff; /* Cor de fundo do contêiner */
-    border-radius: 10px; /* Arredonda os cantos do contêiner */
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Adiciona uma leve sombra ao contêiner */
+// Função para inicializar o banco de dados IndexedDB
+function initializeIndexedDB() {
+    return new Promise((resolve, reject) => {
+        // Verifica se o navegador suporta IndexedDB
+        if (!window.indexedDB) {
+            console.error("Seu navegador não suporta IndexedDB");
+            return reject("IndexedDB não suportado");
+        }
+
+        // Abre ou cria o banco de dados chamado "tradutor-db" com versão 1
+        const request = window.indexedDB.open("tradutor-db", 1);
+
+        // Trata o erro ao tentar abrir o banco de dados
+        request.onerror = function (event) {
+            console.error("Erro ao abrir o banco de dados:", event.target.error);
+            return reject(event.target.error);
+        };
+
+        // Executa ao criar ou atualizar o banco de dados
+        request.onupgradeneeded = function (event) {
+            const db = event.target.result;
+            // Cria um object store chamado "palavras" com chave primária "id"
+            const objectStore = db.createObjectStore("palavras", { keyPath: "id", autoIncrement: true });
+            // Cria um índice para a coluna "english"
+            objectStore.createIndex("english", "english", { unique: false });
+            // Cria um índice para a coluna "portuguese"
+            objectStore.createIndex("portuguese", "portuguese", { unique: false });
+        };
+
+        // Executa ao abrir o banco de dados com sucesso
+        request.onsuccess = function (event) {
+            const db = event.target.result;
+            return resolve(db);
+        };
+    });
 }
 
-/* Estilo do campo de entrada de texto */
-input[type="text"] {
-    width: calc(100% - 20px); /* Largura completa menos o preenchimento */
-    padding: 10px; /* Preenchimento interno */
-    margin-bottom: 20px; /* Margem abaixo do campo de texto */
-    border: 1px solid #ccc; /* Borda cinza clara */
-    border-radius: 5px; /* Arredonda os cantos do campo de texto */
+// Função para adicionar dados ao IndexedDB a partir de um array de dados (ex: arquivo CSV)
+function addDataToIndexedDB(db, data) {
+    return new Promise((resolve, reject) => {
+        // Inicia uma transação de leitura/escrita no object store "palavras"
+        const transaction = db.transaction(["palavras"], "readwrite");
+        const objectStore = transaction.objectStore("palavras");
+
+        // Adiciona cada item do array de dados ao object store
+        data.forEach(item => {
+            const request = objectStore.add({ english: item[0].trim().toLowerCase(), portuguese: item[1].trim().toLowerCase() });
+
+            // Trata erros ao adicionar itens
+            request.onerror = function (event) {
+                console.error("Erro ao adicionar item:", event.target.error);
+                return reject(event.target.error);
+            };
+
+            // Loga o sucesso ao adicionar cada item
+            request.onsuccess = function (event) {
+                console.log("Item adicionado com sucesso:", item);
+            };
+        });
+
+        // Executa ao finalizar a transação
+        transaction.oncomplete = function () {
+            console.log("Todos os itens foram adicionados ao IndexedDB");
+            return resolve();
+        };
+    });
 }
 
-/* Estilo do botão */
-button {
-    padding: 10px 20px; /* Preenchimento interno */
-    background-color: #007bff; /* Cor de fundo azul */
-    color: white; /* Cor do texto */
-    border: none; /* Remove a borda */
-    border-radius: 5px; /* Arredonda os cantos do botão */
-    cursor: pointer; /* Muda o cursor para indicar que é clicável */
-    transition: background-color 0.3s; /* Animação suave na mudança de cor do fundo */
+// Função para buscar uma palavra no IndexedDB (suporta busca em inglês e português)
+function searchWordInIndexedDB(db, word) {
+    return new Promise((resolve, reject) => {
+        // Inicia uma transação de leitura no object store "palavras"
+        const transaction = db.transaction(["palavras"], "readonly");
+        const objectStore = transaction.objectStore("palavras");
+
+        // Tenta buscar a palavra no índice "english"
+        let index = objectStore.index("english");
+        let request = index.get(word);
+
+        // Trata erro na busca em inglês
+        request.onerror = function (event) {
+            console.error("Erro ao buscar a palavra em inglês:", event.target.error);
+            return reject("Erro ao buscar a palavra");
+        };
+
+        // Se a palavra for encontrada em inglês, retorna a tradução
+        request.onsuccess = function (event) {
+            const result = event.target.result;
+            if (result) {
+                return resolve(result.portuguese);
+            } else {
+                // Se não encontrou a palavra em inglês, tenta buscar no índice "portuguese"
+                index = objectStore.index("portuguese");
+                request = index.get(word);
+
+                // Trata erro na busca em português
+                request.onerror = function (event) {
+                    console.error("Erro ao buscar a palavra em português:", event.target.error);
+                    return reject("Erro ao buscar a palavra");
+                };
+
+                // Se a palavra for encontrada em português, retorna a tradução
+                request.onsuccess = function (event) {
+                    const result = event.target.result;
+                    if (result) {
+                        return resolve(result.english);
+                    } else {
+                        // Se não encontrou em nenhum dos índices, rejeita a promessa
+                        return reject("Tradução não encontrada");
+                    }
+                };
+            }
+        };
+    });
 }
 
-/* Estilo do botão ao passar o mouse */
-button:hover {
-    background-color: #0056b3; /* Escurece a cor do fundo ao passar o mouse */
-}
+// Função principal para traduzir uma palavra
+async function traduzir() {
+    // Pega o valor do campo de entrada, remove espaços em branco e converte para minúsculas
+    const palavraInput = document.getElementById("palavraInput").value.trim().toLowerCase();
 
-/* Estilo do campo de tradução */
-#traducao {
-    margin-top: 20px; /* Margem acima do campo */
-    font-style: italic; /* Texto em itálico */
-}
+    // Se o campo estiver vazio, exibe uma mensagem de aviso
+    if (!palavraInput) {
+        return exibirTraducao("Por favor, insira uma palavra");
+    }
+
+    try {
+        // Inicializa o banco de dados
+        const db = await initializeIndexedDB();
+
+        //
