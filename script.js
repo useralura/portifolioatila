@@ -5,7 +5,7 @@ if ('serviceWorker' in navigator) {
             .then((registration) => {
                 console.log('ServiceWorker registrado com sucesso: ', registration);
             }).catch((registrationError) => {
-                console.log('ServiceWorker falhou ao registrar: ', registrationError);
+                console.error('ServiceWorker falhou ao registrar: ', registrationError);
             });
     });
 }
@@ -15,14 +15,14 @@ function initializeIndexedDB() {
     return new Promise((resolve, reject) => {
         if (!window.indexedDB) {
             console.error("Seu navegador não suporta IndexedDB");
-            reject("IndexedDB não suportado");
+            return reject("IndexedDB não suportado");
         }
 
         const request = window.indexedDB.open("tradutor-db", 1);
 
         request.onerror = function (event) {
             console.error("Erro ao abrir o banco de dados:", event.target.error);
-            reject(event.target.error);
+            return reject(event.target.error);
         };
 
         request.onupgradeneeded = function (event) {
@@ -34,7 +34,7 @@ function initializeIndexedDB() {
 
         request.onsuccess = function (event) {
             const db = event.target.result;
-            resolve(db);
+            return resolve(db);
         };
     });
 }
@@ -50,7 +50,7 @@ function addDataToIndexedDB(db, data) {
 
             request.onerror = function (event) {
                 console.error("Erro ao adicionar item:", event.target.error);
-                reject(event.target.error);
+                return reject(event.target.error);
             };
 
             request.onsuccess = function (event) {
@@ -60,7 +60,7 @@ function addDataToIndexedDB(db, data) {
 
         transaction.oncomplete = function () {
             console.log("Todos os itens foram adicionados ao IndexedDB");
-            resolve();
+            return resolve();
         };
     });
 }
@@ -77,13 +77,13 @@ function searchWordInIndexedDB(db, word) {
 
         request.onerror = function (event) {
             console.error("Erro ao buscar a palavra em inglês:", event.target.error);
-            reject("Erro ao buscar a palavra");
+            return reject("Erro ao buscar a palavra");
         };
 
         request.onsuccess = function (event) {
             const result = event.target.result;
             if (result) {
-                resolve(result.portuguese);
+                return resolve(result.portuguese);
             } else {
                 // Se não encontrou a palavra em inglês, tenta buscar pela palavra em português
                 index = objectStore.index("portuguese");
@@ -91,15 +91,15 @@ function searchWordInIndexedDB(db, word) {
 
                 request.onerror = function (event) {
                     console.error("Erro ao buscar a palavra em português:", event.target.error);
-                    reject("Erro ao buscar a palavra");
+                    return reject("Erro ao buscar a palavra");
                 };
 
                 request.onsuccess = function (event) {
                     const result = event.target.result;
                     if (result) {
-                        resolve(result.english);
+                        return resolve(result.english);
                     } else {
-                        reject("Tradução não encontrada");
+                        return reject("Tradução não encontrada");
                     }
                 };
             }
@@ -110,6 +110,10 @@ function searchWordInIndexedDB(db, word) {
 // Função principal para traduzir uma palavra
 async function traduzir() {
     const palavraInput = document.getElementById("palavraInput").value.trim().toLowerCase();
+
+    if (!palavraInput) {
+        return exibirTraducao("Por favor, insira uma palavra");
+    }
 
     try {
         const db = await initializeIndexedDB();
@@ -172,12 +176,12 @@ function clearObjectStore(objectStore) {
 
         request.onerror = function (event) {
             console.error("Erro ao limpar o object store:", event.target.error);
-            reject(event.target.error);
+            return reject(event.target.error);
         };
 
         request.onsuccess = function (event) {
             console.log("Object store limpo com sucesso.");
-            resolve();
+            return resolve();
         };
     });
 }
